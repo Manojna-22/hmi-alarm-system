@@ -1,0 +1,271 @@
+.detail-page {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.back-link a {
+  color: #60a5fa;
+  text-decoration: none;
+  font-size: 0.875rem;
+  display: inline-block;
+  margin-bottom: 1.25rem;
+  &:hover { text-decoration: underline; }
+}
+
+.loading-state {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 4rem; color: #64748b; gap: 1rem;
+}
+
+.spinner {
+  width: 32px; height: 32px;
+  border: 3px solid #2a3040;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.error-banner {
+  background: #450a0a; border: 1px solid #991b1b;
+  color: #fca5a5; padding: 0.65rem 1rem;
+  border-radius: 6px; font-size: 0.85rem; margin-bottom: 1rem;
+}
+
+// ── Grid ─────────────────────────────────────────
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+
+  @media (max-width: 900px) { grid-template-columns: 1fr; }
+}
+
+.detail-card {
+  background: #161b27;
+  border: 1px solid #2a3040;
+  border-radius: 12px;
+  padding: 1.75rem;
+}
+
+// ── Info Card ─────────────────────────────────────
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.alarm-code {
+  font-family: 'Courier New', monospace;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #60a5fa;
+}
+
+.status-chip {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-left: auto;
+  &.chip-active  { background: #450a0a; color: #f87171; border: 1px solid #991b1b; }
+  &.chip-cleared { background: #14532d; color: #4ade80; border: 1px solid #166534; }
+}
+
+.alarm-message {
+  color: #cbd5e1;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0 0 1.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid #2a3040;
+}
+
+.meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.meta-label {
+  font-size: 0.7rem;
+  color: #4b5563;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-weight: 600;
+}
+
+.meta-value {
+  font-size: 0.875rem;
+  color: #e2e8f0;
+  &.ack-val { color: #60a5fa; font-weight: 600; }
+}
+
+.action-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.resolved-note {
+  padding: 0.75rem 1rem;
+  background: #14532d22;
+  border: 1px solid #166534;
+  border-radius: 6px;
+  color: #4ade80;
+  font-size: 0.85rem;
+}
+
+// ── Events Card ───────────────────────────────────
+.section-title {
+  margin: 0 0 1.25rem;
+  font-size: 0.9rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-weight: 700;
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.timeline-item {
+  display: flex;
+  gap: 1rem;
+  position: relative;
+  padding-bottom: 1.25rem;
+
+  &:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 14px;
+    bottom: 0;
+    width: 2px;
+    background: #2a3040;
+  }
+
+  .timeline-dot {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 2px;
+    border: 2px solid transparent;
+  }
+
+  .timeline-body { flex: 1; }
+
+  .timeline-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+
+  .timeline-state {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .timeline-ts {
+    font-size: 0.75rem;
+    color: #4b5563;
+  }
+
+  .timeline-remarks {
+    font-size: 0.83rem;
+    color: #94a3b8;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  &.state-raised {
+    .timeline-dot { background: #f87171; border-color: #991b1b; }
+    .timeline-state { color: #f87171; }
+  }
+  &.state-acked {
+    .timeline-dot { background: #60a5fa; border-color: #1d4ed8; }
+    .timeline-state { color: #60a5fa; }
+  }
+  &.state-cleared {
+    .timeline-dot { background: #4ade80; border-color: #166534; }
+    .timeline-state { color: #4ade80; }
+  }
+}
+
+.empty-events {
+  color: #4b5563;
+  font-style: italic;
+  text-align: center;
+  padding: 2rem;
+}
+
+// ── Buttons ───────────────────────────────────────
+.btn {
+  border: none; border-radius: 6px;
+  font-size: 0.875rem; font-weight: 600;
+  cursor: pointer; padding: 0.5rem 1.25rem;
+  transition: all 0.15s;
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  &.btn-primary { background: #1d4ed8; color: #fff; &:hover:not(:disabled) { background: #2563eb; } }
+  &.btn-ghost   { background: transparent; border: 1px solid #2a3040; color: #94a3b8; &:hover { border-color: #4b5563; color: #e2e8f0; } }
+  &.btn-ack     { background: #1e3a5f; color: #93c5fd; &:hover { background: #1d4ed8; } }
+  &.btn-clear   { background: #14532d; color: #4ade80; &:hover { background: #166534; } }
+}
+
+// ── Modal ─────────────────────────────────────────
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.65);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; backdrop-filter: blur(2px);
+}
+
+.modal {
+  background: #161b27; border: 1px solid #2a3040;
+  border-radius: 12px; padding: 2rem;
+  min-width: 420px; max-width: 90vw;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+.modal-title { margin: 0 0 0.25rem; color: #e2e8f0; font-size: 1.1rem; }
+.modal-sub   { color: #64748b; font-size: 0.85rem; margin: 0 0 1.25rem; }
+
+.form-group {
+  margin-bottom: 1rem;
+  label {
+    display: block; color: #94a3b8;
+    font-size: 0.75rem; font-weight: 600;
+    margin-bottom: 0.35rem;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+}
+
+.form-control {
+  width: 100%; background: #0f1117;
+  border: 1px solid #2a3040; color: #e2e8f0;
+  padding: 0.5rem 0.75rem; border-radius: 6px;
+  font-size: 0.875rem; box-sizing: border-box;
+  &:focus { outline: none; border-color: #3b82f6; }
+  &::placeholder { color: #374151; }
+}
+
+.modal-actions {
+  display: flex; justify-content: flex-end;
+  gap: 0.75rem; margin-top: 1.5rem;
+}

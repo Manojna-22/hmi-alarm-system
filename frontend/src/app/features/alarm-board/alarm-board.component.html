@@ -1,0 +1,185 @@
+<div class="board">
+
+  <!-- ── Stats Bar ─────────────────────────────── -->
+  <section class="stats-bar" *ngIf="stats">
+    <div class="stat-card active">
+      <span class="stat-number">{{ stats.totalActive }}</span>
+      <span class="stat-label">Active</span>
+    </div>
+    <div class="stat-card cleared">
+      <span class="stat-number">{{ stats.totalCleared }}</span>
+      <span class="stat-label">Cleared</span>
+    </div>
+    <div class="stat-card acked">
+      <span class="stat-number">{{ stats.totalAcknowledged }}</span>
+      <span class="stat-label">Acknowledged</span>
+    </div>
+    <!-- Severity breakdown -->
+    <div class="severity-breakdown">
+      <div class="sev-item" *ngFor="let sev of severities">
+        <span class="sev-dot" [ngClass]="sev.toLowerCase()"></span>
+        <span class="sev-label">{{ sev }}</span>
+        <span class="sev-count">{{ getSeverityCount(sev) }}</span>
+      </div>
+    </div>
+    <!-- Simple Donut -->
+    <div class="donut-wrap" *ngIf="stats.totalActive > 0">
+      <svg viewBox="0 0 36 36" class="donut-svg">
+        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#1e2535" stroke-width="3.5"/>
+        <!-- CRITICAL -->
+        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#ef4444" stroke-width="3.5"
+          stroke-dasharray="{{ getDonutDashArray('CRITICAL') }}" stroke-dashoffset="25"
+          transform="rotate(-90 18 18)"/>
+        <!-- HIGH -->
+        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f97316" stroke-width="3.5"
+          stroke-dasharray="{{ getDonutDashArray('HIGH') }}" stroke-dashoffset="25"
+          transform="rotate(-90 18 18)" style="opacity:0.7"/>
+        <!-- MEDIUM -->
+        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#eab308" stroke-width="3.5"
+          stroke-dasharray="{{ getDonutDashArray('MEDIUM') }}" stroke-dashoffset="25"
+          transform="rotate(-90 18 18)" style="opacity:0.5"/>
+        <text x="18" y="19.5" class="donut-text" text-anchor="middle">{{ stats.totalActive }}</text>
+      </svg>
+      <p class="donut-label">Active Alarms</p>
+    </div>
+  </section>
+
+  <!-- ── Toolbar ────────────────────────────────── -->
+  <div class="toolbar">
+    <div class="filters">
+      <select [(ngModel)]="filters.active" (change)="applyFilter()" class="filter-select">
+        <option [ngValue]="undefined">All Status</option>
+        <option [ngValue]="true">Active</option>
+        <option [ngValue]="false">Cleared</option>
+      </select>
+      <select [(ngModel)]="filters.severity" (change)="applyFilter()" class="filter-select">
+        <option [ngValue]="undefined">All Severities</option>
+        <option *ngFor="let sev of severities" [ngValue]="sev">{{ sev }}</option>
+      </select>
+      <button class="btn btn-ghost" (click)="clearFilters()">Reset</button>
+    </div>
+    <div class="toolbar-right">
+      <span class="total-count">{{ totalElements }} alarm(s)</span>
+      <button class="btn btn-primary" (click)="openCreateForm()">+ New Alarm</button>
+    </div>
+  </div>
+
+  <!-- ── Error Banner ───────────────────────────── -->
+  <div class="error-banner" *ngIf="error">
+    ⚠ {{ error }}
+    <button (click)="error = null">✕</button>
+  </div>
+
+  <!-- ── Alarm Table ────────────────────────────── -->
+  <div class="table-wrap">
+    <div class="loading-overlay" *ngIf="loading">
+      <div class="spinner"></div>
+    </div>
+    <table class="alarm-table">
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Message</th>
+          <th>Severity</th>
+          <th>Status</th>
+          <th>Acknowledged</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let alarm of alarms; trackBy: trackById" [ngClass]="{ 'row-critical': alarm.severity === 'CRITICAL' && alarm.active }">
+          <td class="code-cell">
+            <a [routerLink]="['/alarms', alarm.id]">{{ alarm.code }}</a>
+          </td>
+          <td class="msg-cell">{{ alarm.message }}</td>
+          <td><app-severity-badge [severity]="alarm.severity" /></td>
+          <td>
+            <span class="status-pill" [ngClass]="alarm.active ? 'status-active' : 'status-cleared'">
+              {{ alarm.active ? 'Active' : 'Cleared' }}
+            </span>
+          </td>
+          <td>
+            <span *ngIf="alarm.acknowledged" class="ack-pill">
+              ✓ {{ alarm.acknowledgedBy }}
+            </span>
+            <span *ngIf="!alarm.acknowledged" class="unacked">—</span>
+          </td>
+          <td class="date-cell">{{ alarm.createdAt | date:'dd MMM HH:mm' }}</td>
+          <td class="actions-cell">
+            <button class="btn btn-sm btn-ack"
+              *ngIf="alarm.active && !alarm.acknowledged"
+              (click)="openAckModal(alarm)">Ack</button>
+            <button class="btn btn-sm btn-clear"
+              *ngIf="alarm.active"
+              (click)="clearAlarm(alarm)">Clear</button>
+            <button class="btn btn-sm btn-delete"
+              (click)="deleteAlarm(alarm)">Del</button>
+          </td>
+        </tr>
+        <tr *ngIf="alarms.length === 0 && !loading">
+          <td colspan="7" class="empty-row">No alarms found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── Pagination ─────────────────────────────── -->
+  <div class="pagination" *ngIf="totalPages > 1">
+    <button *ngFor="let p of pagesArray"
+      class="page-btn"
+      [ngClass]="{ active: p === filters.page }"
+      (click)="goToPage(p)">{{ p + 1 }}</button>
+  </div>
+
+</div>
+
+<!-- ── Create Alarm Modal ─────────────────────── -->
+<div class="modal-overlay" *ngIf="showCreateForm" (click)="showCreateForm = false">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h3 class="modal-title">Create New Alarm</h3>
+    <div class="form-group">
+      <label>Code</label>
+      <input type="text" [(ngModel)]="createForm.code" placeholder="e.g. ALM-006" class="form-control" />
+    </div>
+    <div class="form-group">
+      <label>Message</label>
+      <textarea [(ngModel)]="createForm.message" placeholder="Alarm description..." class="form-control" rows="3"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Severity</label>
+      <select [(ngModel)]="createForm.severity" class="form-control">
+        <option *ngFor="let sev of severities" [value]="sev">{{ sev }}</option>
+      </select>
+    </div>
+    <div class="error-banner" *ngIf="createError">{{ createError }}</div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" (click)="showCreateForm = false">Cancel</button>
+      <button class="btn btn-primary" (click)="submitCreate()" [disabled]="createLoading">
+        {{ createLoading ? 'Creating…' : 'Create Alarm' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Acknowledge Modal ───────────────────────── -->
+<div class="modal-overlay" *ngIf="showAckModal" (click)="showAckModal = false">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h3 class="modal-title">Acknowledge Alarm</h3>
+    <p class="modal-sub">{{ ackTargetAlarm?.code }} — {{ ackTargetAlarm?.message }}</p>
+    <div class="form-group">
+      <label>Your Name / Operator ID *</label>
+      <input type="text" [(ngModel)]="ackBy" placeholder="e.g. operator1" class="form-control" />
+    </div>
+    <div class="form-group">
+      <label>Remarks (optional)</label>
+      <input type="text" [(ngModel)]="ackRemarks" placeholder="What action was taken?" class="form-control" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" (click)="showAckModal = false">Cancel</button>
+      <button class="btn btn-primary" (click)="submitAck()" [disabled]="ackLoading || !ackBy.trim()">
+        {{ ackLoading ? 'Acknowledging…' : 'Acknowledge' }}
+      </button>
+    </div>
+  </div>
+</div>

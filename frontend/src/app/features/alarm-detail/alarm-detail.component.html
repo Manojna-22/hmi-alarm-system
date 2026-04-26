@@ -1,0 +1,114 @@
+<div class="detail-page">
+
+  <div class="back-link">
+    <a routerLink="/alarms">← Back to Dashboard</a>
+  </div>
+
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Loading alarm…</p>
+  </div>
+
+  <div class="error-banner" *ngIf="error">⚠ {{ error }}</div>
+
+  <div class="detail-grid" *ngIf="alarm && !loading">
+
+    <!-- ── Left: Alarm Info ───────────────────── -->
+    <div class="detail-card info-card">
+      <div class="card-header">
+        <span class="alarm-code">{{ alarm.code }}</span>
+        <app-severity-badge [severity]="alarm.severity" />
+        <span class="status-chip" [ngClass]="alarm.active ? 'chip-active' : 'chip-cleared'">
+          {{ alarm.active ? '● Active' : '✓ Cleared' }}
+        </span>
+      </div>
+
+      <p class="alarm-message">{{ alarm.message }}</p>
+
+      <div class="meta-grid">
+        <div class="meta-item">
+          <span class="meta-label">Alarm ID</span>
+          <span class="meta-value">#{{ alarm.id }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Severity</span>
+          <span class="meta-value">{{ alarm.severity }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Created</span>
+          <span class="meta-value">{{ alarm.createdAt | date:'dd MMM yyyy, HH:mm:ss' }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Last Updated</span>
+          <span class="meta-value">{{ alarm.updatedAt | date:'dd MMM yyyy, HH:mm:ss' }}</span>
+        </div>
+        <div class="meta-item" *ngIf="alarm.acknowledged">
+          <span class="meta-label">Acknowledged By</span>
+          <span class="meta-value ack-val">{{ alarm.acknowledgedBy }}</span>
+        </div>
+        <div class="meta-item" *ngIf="alarm.acknowledgedAt">
+          <span class="meta-label">Acknowledged At</span>
+          <span class="meta-value">{{ alarm.acknowledgedAt | date:'dd MMM yyyy, HH:mm:ss' }}</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-row" *ngIf="alarm.active">
+        <button class="btn btn-ack" *ngIf="!alarm.acknowledged" (click)="openAckModal()">
+          ✓ Acknowledge
+        </button>
+        <button class="btn btn-clear" (click)="clearAlarm()">
+          ✕ Clear Alarm
+        </button>
+      </div>
+      <div class="resolved-note" *ngIf="!alarm.active">
+        <span>✓ This alarm has been cleared and is no longer active.</span>
+      </div>
+    </div>
+
+    <!-- ── Right: Event Timeline ──────────────── -->
+    <div class="detail-card events-card">
+      <h3 class="section-title">Event Timeline</h3>
+
+      <div class="timeline" *ngIf="events.length > 0">
+        <div class="timeline-item" *ngFor="let event of events" [ngClass]="stateClass(event.state)">
+          <div class="timeline-dot"></div>
+          <div class="timeline-body">
+            <div class="timeline-header">
+              <span class="timeline-state">{{ event.state }}</span>
+              <span class="timeline-ts">{{ event.ts | date:'dd MMM HH:mm:ss' }}</span>
+            </div>
+            <p class="timeline-remarks">{{ event.remarks }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty-events" *ngIf="events.length === 0">
+        No events recorded yet.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Ack Modal -->
+<div class="modal-overlay" *ngIf="showAckModal" (click)="showAckModal = false">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h3 class="modal-title">Acknowledge Alarm</h3>
+    <p class="modal-sub">{{ alarm?.code }} — {{ alarm?.message }}</p>
+    <div class="form-group">
+      <label>Your Name / Operator ID *</label>
+      <input type="text" [(ngModel)]="ackBy" placeholder="e.g. operator1" class="form-control" />
+    </div>
+    <div class="form-group">
+      <label>Remarks (optional)</label>
+      <input type="text" [(ngModel)]="ackRemarks" placeholder="Action taken..." class="form-control" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" (click)="showAckModal = false">Cancel</button>
+      <button class="btn btn-primary" (click)="submitAck()" [disabled]="ackLoading || !ackBy.trim()">
+        {{ ackLoading ? 'Acknowledging…' : 'Acknowledge' }}
+      </button>
+    </div>
+  </div>
+</div>
